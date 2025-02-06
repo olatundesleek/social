@@ -1,4 +1,5 @@
 const moogoose = require("mongoose");
+const { array } = require("../middleware/upload");
 
 const userSchema = new moogoose.Schema({
   username: {
@@ -19,6 +20,10 @@ const userSchema = new moogoose.Schema({
   profilePicture: {
     type: String,
     default: "", // Default value if no profile picture is provided
+  },
+  pictures: {
+    type: [String],
+    // Default value if no profile picture is provided
   },
   bio: {
     type: String,
