@@ -1,8 +1,10 @@
+const User = require("../models/user.model");
 const {
   displayUsers,
   saveUser,
   profile,
   updateProfile,
+  uploadUserImage,
 } = require("../services/users");
 
 async function getUsers(req, res) {
@@ -42,4 +44,23 @@ async function editProfile(req, res) {
   }
 }
 
-module.exports = { getUsers, createUser, getProfile, editProfile };
+async function uploadImage(req, res) {
+  try {
+    const username = req.authUser.username;
+    newPhoto = "uploads/" + req.file.filename;
+    if (!req.file) {
+      res.send("no file uploaded");
+    }
+    await User.findOneAndUpdate(
+      { username: username },
+      // { profilePicture:  }
+      { $push: { pictures: newPhoto } },
+      { new: true }
+    );
+    res.send("file uploaded");
+  } catch (error) {
+    res.status(403).send(error);
+  }
+}
+
+module.exports = { getUsers, createUser, getProfile, editProfile, uploadImage };

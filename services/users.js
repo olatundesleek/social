@@ -1,6 +1,8 @@
 // const { log } = require('node:console');
+
 const User = require("../models/user.model");
 const bcrypt = require("bcrypt");
+
 const saltRounds = 10;
 
 async function displayUsers() {
@@ -76,4 +78,17 @@ async function updateProfile(username, data) {
     return error.message;
   }
 }
-module.exports = { displayUsers, saveUser, profile, updateProfile };
+
+async function uploadUserImage() {
+  // const storage = multer.diskStorage({destination:function (req,file,cb) {
+  //   cb(null,)
+  // }});
+}
+
+module.exports = {
+  displayUsers,
+  saveUser,
+  profile,
+  updateProfile,
+  uploadUserImage,
+};
