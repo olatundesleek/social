@@ -15,7 +15,7 @@ userRouter.put("/profile/update", authUser, userController.editProfile);
 userRouter.post(
   "/profile/update/upload",
   authUser,
-  upload.single("picture"),
+  upload.single("file"),
   userController.uploadImage
 );
 userRouter.post("/signup", userController.createUser);

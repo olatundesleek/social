@@ -1,56 +1,99 @@
-const moogoose = require("mongoose");
-const { array } = require("../middleware/upload");
+const mongoose = require("mongoose");
+const jwt = require("jsonwebtoken");
+require("dotenv").config();
 
-const userSchema = new moogoose.Schema({
+const userSchema = new mongoose.Schema({
   username: {
     type: String,
-    required: true, // Ensures username is mandatory
-    unique: true, // Ensures usernames are unique
+    required: true,
+    unique: true,
   },
   email: {
     type: String,
-    required: true, // Ensures email is mandatory
-    unique: true, // Ensures no duplicate emails
-    match: [/.+@.+\..+/, "Please enter a valid email"], // Validates email format
+    required: true,
+    unique: true,
+    match: [/.+@.+\..+/, "Please enter a valid email"],
   },
   password: {
     type: String,
-    required: true, // Ensures password is mandatory
+    required: true,
   },
   profilePicture: {
     type: String,
-    default: "", // Default value if no profile picture is provided
+    default: "",
   },
   pictures: {
     type: [String],
-    // Default value if no profile picture is provided
   },
   bio: {
     type: String,
-    default: "", // Default value if no bio is provided
+    default: "",
   },
   address: {
     type: String,
-    default: "", // Default value if no address is provided
+    default: "",
   },
-  followersCount: {
-    type: Number,
-    default: 0, // Default value if no followers
-  },
-  followingCount: {
-    type: Number,
-    default: 0, // Default value if no following
-  },
+  followers: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+  ],
+  following: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+  ],
   isVerified: {
     type: Boolean,
-    default: false, // Default to unverified accounts
+    default: false,
+  },
+  isAdmin: {
+    type: Boolean,
+    default: false,
   },
   accountCreated: {
     type: Date,
-    default: Date.now, // Automatically sets the creation timestamp
+    default: Date.now,
   },
 });
 
-const User = moogoose.model("social", userSchema, "users");
+// Virtual property for follower count
+userSchema.virtual("followerCount").get(function () {
+  return this.followers.length;
+});
+
+// Virtual property for following count
+userSchema.virtual("followingCount").get(function () {
+  return this.following.length;
+});
+
+// method to signin user
+
+userSchema.methods.createToken = async function () {
+  let Secret = process.env.SECRET;
+
+  return new Promise((resolve, reject) => {
+    jwt.sign(
+      { username: this.username, isAdmin: this.isAdmin },
+      Secret,
+      { expiresIn: "1h" },
+      (err, token) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(token);
+        }
+      }
+    );
+  });
+};
+
+// Ensure virtuals are included in JSON responses
+userSchema.set("toJSON", { virtuals: true });
+userSchema.set("toObject", { virtuals: true });
+
+const User = mongoose.model("social", userSchema, "users");
 
 module.exports = User;
