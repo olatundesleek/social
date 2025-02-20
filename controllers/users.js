@@ -4,6 +4,7 @@ const {
   saveUser,
   profile,
   updateProfile,
+  passwordReset,
   uploadUserImage,
 } = require("../services/users");
 
@@ -44,6 +45,17 @@ async function editProfile(req, res) {
   }
 }
 
+async function resetPassword(req, res) {
+  try {
+    const userEmail = req.body.email;
+    if (!userEmail) {
+      res.status(403).send("include your email");
+    }
+    const response = await passwordReset(userEmail);
+    res.status(200).send(response);
+  } catch (error) {}
+}
+
 async function uploadImage(req, res) {
   try {
     const username = req.authUser.username;
@@ -63,4 +75,11 @@ async function uploadImage(req, res) {
   }
 }
 
-module.exports = { getUsers, createUser, getProfile, editProfile, uploadImage };
+module.exports = {
+  getUsers,
+  createUser,
+  getProfile,
+  editProfile,
+  resetPassword,
+  uploadImage,
+};

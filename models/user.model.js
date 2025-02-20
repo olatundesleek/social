@@ -90,6 +90,25 @@ userSchema.methods.createToken = async function () {
   });
 };
 
+userSchema.methods.passwordResetToken = async function () {
+  let Secret = process.env.SECRET;
+
+  return new Promise((resolve, reject) => {
+    jwt.sign(
+      { username: this.username },
+      Secret,
+      { expiresIn: "5m" },
+      (err, token) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(token);
+        }
+      }
+    );
+  });
+};
+
 // Ensure virtuals are included in JSON responses
 userSchema.set("toJSON", { virtuals: true });
 userSchema.set("toObject", { virtuals: true });
