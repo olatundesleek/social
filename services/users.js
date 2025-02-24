@@ -1,9 +1,10 @@
 // const { log } = require('node:console');
 
 const sendEmail = require("../email/sendmail");
+const generatePasswordResetEmail = require("../emailtemplate/paswordresetemail");
 const User = require("../models/user.model");
 const bcrypt = require("bcrypt");
-const link = process.env.WEBLINK;
+
 const saltRounds = 10;
 
 async function displayUsers() {
@@ -14,17 +15,17 @@ async function displayUsers() {
 async function saveUser(username, email, password) {
   try {
     const hash = await bcrypt.hash(password, saltRounds);
-
     const newUser = new User({
       username: username,
       email: email,
       password: hash,
     });
     await newUser.save();
-    return newUser;
+
+    sendEmail.sendUserRegisterationEmail(username, email);
   } catch (error) {
-    console.error("Error saving user:", error);
-    throw new Error(error); //
+    // return error;
+    throw new Error(error);
   }
 }
 
@@ -81,6 +82,7 @@ async function updateProfile(username, data) {
 }
 async function passwordReset(userEmail) {
   const email = userEmail;
+  console.log(email);
   try {
     const user = await User.findOne({ email: email });
     if (!user) {
@@ -88,58 +90,10 @@ async function passwordReset(userEmail) {
     }
 
     const token = await user.passwordResetToken();
-    const subject = "passwordreset";
-    const html = `<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>Password Reset</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            padding: 20px;
-            text-align: center;
-        }
-        .container {
-            background: #ffffff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-            max-width: 400px;
-            margin: auto;
-        }
-        .button {
-            display: inline-block;
-            background: #007bff;
-            color: white;
-            text-decoration: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            font-weight: bold;
-            margin-top: 10px;
-        }
-        .button:hover {
-            background: #0056b3;
-        }
-        p {
-            color: #333;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h2>Password Reset Request</h2>
-        <p>Hello <strong>User</strong>,</p>
-        <p>We received a request to reset your password. Click the button below to reset it:</p>
-        <a href="http://${link}${token}" class="button">Reset Password</a>
-        <p>If you didn't request this, you can ignore this email.</p>
-        <p>Thanks, <br> The Team</p>
-    </div>
-</body>
-</html>`;
-    // const userEmail = email;
-    sendEmail(subject, html, userEmail);
+
+    // passwordReset(token, user);
+    sendEmail.sendPasswordResetEmail(token, user, email);
+    return `if an account with ${email} exist, you would receive a password reset email`;
   } catch (error) {
     console.log(error);
   }

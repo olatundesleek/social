@@ -1,3 +1,4 @@
+const sendEmail = require("../email/sendmail");
 const User = require("../models/user.model");
 const {
   displayUsers,
@@ -5,7 +6,6 @@ const {
   profile,
   updateProfile,
   passwordReset,
-  uploadUserImage,
 } = require("../services/users");
 
 async function getUsers(req, res) {
@@ -14,11 +14,15 @@ async function getUsers(req, res) {
   res.send(users);
 }
 
-function createUser(req, res) {
-  const { username, email, password } = req.body;
-  saveUser(username, email, password)
-    .then(() => res.status(201).send("New user created"))
-    .catch((error) => res.status(400).send({ error: error.message }));
+async function createUser(req, res) {
+  try {
+    const { username, email, password } = req.body;
+    await saveUser(username, email, password);
+
+    res.status(201).send("new user created");
+  } catch (error) {
+    res.status(403).send({ error: error.message });
+  }
 }
 
 async function getProfile(req, res) {
@@ -45,9 +49,30 @@ async function editProfile(req, res) {
   }
 }
 
-async function resetPassword(req, res) {
+async function sendPasswordResetLink(req, res) {
   try {
     const userEmail = req.body.email;
+    if (!userEmail) {
+      res.status(403).send("include your email");
+    }
+    const response = await passwordReset(userEmail);
+    res.status(200).send(response);
+  } catch (error) {}
+}
+async function confirmPasswordResetToken(req, res) {
+  try {
+    const token = req.params.token;
+    if (!userEmail) {
+      res.status(403).send("include your email");
+    }
+    const response = await passwordReset(userEmail);
+    res.status(200).send(response);
+  } catch (error) {}
+}
+
+async function passwordReset(req, res) {
+  try {
+    const token = req.params.token;
     if (!userEmail) {
       res.status(403).send("include your email");
     }
@@ -80,6 +105,8 @@ module.exports = {
   createUser,
   getProfile,
   editProfile,
-  resetPassword,
+  sendPasswordResetLink,
+  confirmPasswordResetToken,
+  passwordReset,
   uploadImage,
 };
