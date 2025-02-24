@@ -17,15 +17,14 @@ async function authUser(req, res) {
     if (!pass) {
       return res.status(400).send("incorrect username or password");
     }
-    //  const token = jwt.sign({ _id: user.id }, Secret);
-    //  res.header("authorization", token).status(200).send(token);
-    const token = jwt.sign({ username: user.username }, Secret);
+
+    const token = await user.createToken();
     res
       .header("authorization", token)
       .status(200)
       .send("signed in successfully  " + token);
 
-    console.log(token);
+    console.log("this is my " + token);
   } catch (error) {}
 }
 

@@ -1,5 +1,7 @@
 // const { log } = require('node:console');
 
+const sendEmail = require("../email/sendmail");
+const generatePasswordResetEmail = require("../emailtemplate/paswordresetemail");
 const User = require("../models/user.model");
 const bcrypt = require("bcrypt");
 
@@ -13,17 +15,17 @@ async function displayUsers() {
 async function saveUser(username, email, password) {
   try {
     const hash = await bcrypt.hash(password, saltRounds);
-
     const newUser = new User({
       username: username,
       email: email,
       password: hash,
     });
     await newUser.save();
-    return newUser;
+
+    sendEmail.sendUserRegisterationEmail(username, email);
   } catch (error) {
-    console.error("Error saving user:", error);
-    throw new Error(error); //
+    // return error;
+    throw new Error(error);
   }
 }
 
@@ -78,6 +80,24 @@ async function updateProfile(username, data) {
     return error.message;
   }
 }
+async function passwordReset(userEmail) {
+  const email = userEmail;
+  console.log(email);
+  try {
+    const user = await User.findOne({ email: email });
+    if (!user) {
+      return `if an account with ${userEmail} exist, you would receive a password reset email`;
+    }
+
+    const token = await user.passwordResetToken();
+
+    // passwordReset(token, user);
+    sendEmail.sendPasswordResetEmail(token, user, email);
+    return `if an account with ${email} exist, you would receive a password reset email`;
+  } catch (error) {
+    console.log(error);
+  }
+}
 
 async function uploadUserImage() {
   // const storage = multer.diskStorage({destination:function (req,file,cb) {
@@ -91,4 +111,5 @@ module.exports = {
   profile,
   updateProfile,
   uploadUserImage,
+  passwordReset,
 };

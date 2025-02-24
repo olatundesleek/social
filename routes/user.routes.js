@@ -15,9 +15,16 @@ userRouter.put("/profile/update", authUser, userController.editProfile);
 userRouter.post(
   "/profile/update/upload",
   authUser,
-  upload.single("picture"),
+  upload.single("file"),
   userController.uploadImage
 );
 userRouter.post("/signup", userController.createUser);
 userRouter.post("/signin", auth);
+userRouter.post("/forgot-password", userController.sendPasswordResetLink);
+userRouter.get(
+  "/reset-password:token",
+  userController.confirmPasswordResetToken
+);
+userRouter.post("/reset-password:token", userController.passwordReset);
+userRouter.post("/password-confirm");
 module.exports = userRouter;
