@@ -3,6 +3,7 @@ const userController = require("../controllers/users");
 const auth = require("../auth/authentication");
 const { authUser } = require("../auth/authorization");
 const upload = require("../middleware/upload");
+const checkResetToken = require("../middleware/checkusertoken");
 
 const userRouter = express.Router();
 
@@ -21,10 +22,15 @@ userRouter.post(
 userRouter.post("/signup", userController.createUser);
 userRouter.post("/signin", auth);
 userRouter.post("/forgot-password", userController.sendPasswordResetLink);
-userRouter.get(
-  "/reset-password:token",
-  userController.confirmPasswordResetToken
+userRouter.post(
+  "/reset-password",
+  checkResetToken,
+  userController.confirmPassword
 );
-userRouter.post("/reset-password:token", userController.passwordReset);
-userRouter.post("/password-confirm");
+// userRouter.post("/reset-password", userController.passwordReset);
+userRouter.post(
+  "/confirm-reset-token",
+  checkResetToken,
+  userController.confirmResetToken
+);
 module.exports = userRouter;

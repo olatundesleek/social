@@ -5,7 +5,9 @@ const {
   saveUser,
   profile,
   updateProfile,
-  passwordReset,
+  passwordResetLink,
+  confirmToken,
+  changePassword,
 } = require("../services/users");
 
 async function getUsers(req, res) {
@@ -55,30 +57,33 @@ async function sendPasswordResetLink(req, res) {
     if (!userEmail) {
       res.status(403).send("include your email");
     }
-    const response = await passwordReset(userEmail);
-    res.status(200).send(response);
-  } catch (error) {}
-}
-async function confirmPasswordResetToken(req, res) {
-  try {
-    const token = req.params.token;
-    if (!userEmail) {
-      res.status(403).send("include your email");
-    }
-    const response = await passwordReset(userEmail);
+    const response = await passwordResetLink(userEmail);
     res.status(200).send(response);
   } catch (error) {}
 }
 
-async function passwordReset(req, res) {
+async function confirmResetToken(req, res) {
   try {
-    const token = req.params.token;
-    if (!userEmail) {
-      res.status(403).send("include your email");
-    }
-    const response = await passwordReset(userEmail);
-    res.status(200).send(response);
-  } catch (error) {}
+    const user = req.verifiedUser;
+
+    res.status(200).send(user);
+    // const response = await passwordReset(token);
+  } catch (error) {
+    res.status(403).send(error.message);
+  }
+}
+
+async function confirmPassword(req, res) {
+  try {
+    const user = req.verifiedUser.username;
+    const pass = req.body.password;
+    console.log("na this" + user, pass);
+
+    const response = await changePassword(user, pass);
+    res.send(response).status(201);
+  } catch (error) {
+    res.status(401).send(error);
+  }
 }
 
 async function uploadImage(req, res) {
@@ -106,7 +111,7 @@ module.exports = {
   getProfile,
   editProfile,
   sendPasswordResetLink,
-  confirmPasswordResetToken,
-  passwordReset,
+  confirmResetToken,
+  confirmPassword,
   uploadImage,
 };
