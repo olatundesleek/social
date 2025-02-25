@@ -1,5 +1,5 @@
 // const { log } = require('node:console');
-
+const jwt = require("jsonwebtoken");
 const sendEmail = require("../email/sendmail");
 const generatePasswordResetEmail = require("../emailtemplate/paswordresetemail");
 const User = require("../models/user.model");
@@ -80,7 +80,22 @@ async function updateProfile(username, data) {
     return error.message;
   }
 }
-async function passwordReset(userEmail) {
+
+async function changePassword(user, pass) {
+  try {
+    const password = await bcrypt.hash(pass, saltRounds);
+    const userName = await User.findOneAndUpdate(
+      { username: user },
+      { $set: { password } }
+    );
+    sendEmail.sendPasswordChangedEmail(userName.username, userName.email);
+    return "password changed successfully";
+  } catch (error) {
+    throw new Error(error);
+  }
+}
+
+async function passwordResetLink(userEmail) {
   const email = userEmail;
   console.log(email);
   try {
@@ -99,6 +114,22 @@ async function passwordReset(userEmail) {
   }
 }
 
+async function confirmToken(token) {
+  try {
+    const checkToken = new Promise((resolve, reject) => {
+      jwt.verify(token, process.env.PASSWORD_RESET_SECRET, (err, decoded) => {
+        if (err) {
+          throw new Error("invalid Token");
+          // reject(err);
+        } else {
+          resolve(decoded);
+        }
+      });
+    });
+    return checkToken;
+  } catch (error) {}
+}
+
 async function uploadUserImage() {
   // const storage = multer.diskStorage({destination:function (req,file,cb) {
   //   cb(null,)
@@ -111,5 +142,7 @@ module.exports = {
   profile,
   updateProfile,
   uploadUserImage,
-  passwordReset,
+  passwordResetLink,
+  confirmToken,
+  changePassword,
 };

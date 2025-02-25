@@ -1,4 +1,4 @@
-const generatePasswordResetEmail = (user, token) => {
+const generatePasswordchangedEmail = (user) => {
   const link = process.env.WEBLINK;
   return `
  
@@ -43,15 +43,14 @@ const generatePasswordResetEmail = (user, token) => {
 <body>
     <div class="container">
         <h2>Password Reset Request</h2>
-        <p>Hello <strong>${user.username}</strong>,</p>
-        <p>We received a request to reset your password. Click the button below to reset it:</p>
-        <a href="http://${link}/resetpassword/${token}" class="button">Reset Password</a>
-        <p>If you didn't request this, you can ignore this email.</p>
-        <p>This link would expire in 5 minutes.</p>
+        <p>Hello <strong>${user}</strong>,</p>
+        <p>Your Password has been changed sucessful</p>
+     
+       
         <p>Thanks, <br> The Team</p>
     </div>
 </body>
 </html>`;
 };
 
-module.exports = generatePasswordResetEmail;
+module.exports = generatePasswordchangedEmail;

@@ -91,13 +91,13 @@ userSchema.methods.createToken = async function () {
 };
 
 userSchema.methods.passwordResetToken = async function () {
-  let Secret = process.env.SECRET;
+  let Secret = process.env.PASSWORD_RESET_SECRET;
 
   return new Promise((resolve, reject) => {
     jwt.sign(
       { username: this.username },
       Secret,
-      { expiresIn: "5m" },
+      { expiresIn: "35m" },
       (err, token) => {
         if (err) {
           reject(err);
@@ -106,6 +106,16 @@ userSchema.methods.passwordResetToken = async function () {
         }
       }
     );
+  });
+};
+
+userSchema.methods.verifyToken = async function () {
+  let Secret = process.env.SECRET;
+
+  jwt.verify(token, process.env.SECRET, (err, decoded) => {
+    if (err) {
+      return res.status(403).send({ message: "invalid token" });
+    }
   });
 };
 
