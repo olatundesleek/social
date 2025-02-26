@@ -1,8 +1,10 @@
 const express = require("express");
 const mongoose = require("mongoose");
+const cookieParser = require("cookie-parser");
 const userRouter = require("./routes/user.routes");
 const checkJson = require("./middleware/checkjson");
 require("dotenv").config();
+
 const app = express();
 
 const MailDev = require("maildev");
@@ -24,6 +26,7 @@ maildev.listen(() => {
 
 app.use(express.json());
 app.use(checkJson);
+app.use(cookieParser()); // Middleware to parse cookies
 
 mongoose.connect("mongodb://localhost/social").then(() => {
   console.log("connected");
