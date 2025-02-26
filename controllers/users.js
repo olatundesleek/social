@@ -8,6 +8,9 @@ const {
   passwordResetLink,
   confirmToken,
   changePassword,
+  userProfile,
+  follow,
+  unfollow,
 } = require("../services/users");
 
 async function getUsers(req, res) {
@@ -29,10 +32,23 @@ async function createUser(req, res) {
 
 async function getProfile(req, res) {
   try {
-    const username = req.params.username;
     const authUser = req.authUser.username;
 
-    let userInfo = await profile(username, authUser);
+    let userInfo = await profile(authUser);
+
+    res.status(200).send(userInfo);
+  } catch (error) {
+    res.send(error.message);
+  }
+}
+
+async function getUserProfile(req, res) {
+  console.log("this is the user profile");
+  try {
+    const username = req.params.username;
+    console.log(username);
+
+    let userInfo = await userProfile(username);
 
     res.status(200).send(userInfo);
   } catch (error) {
@@ -67,7 +83,6 @@ async function confirmResetToken(req, res) {
     const user = req.verifiedUser;
 
     res.status(200).send(user);
-    // const response = await passwordReset(token);
   } catch (error) {
     res.status(403).send(error.message);
   }
@@ -105,13 +120,41 @@ async function uploadImage(req, res) {
   }
 }
 
+async function followUser(req, res) {
+  try {
+    const authUser = req.authUser.userId;
+    const userName = req.authUser.username;
+    const userToFollow = req.params.username;
+    const response = await follow(userName, authUser, userToFollow);
+    res.status(200).send(response);
+  } catch (error) {
+    res.status(403).send(error.message);
+  }
+}
+
+async function unfollowUser(req, res) {
+  try {
+    const authUser = req.authUser.userId;
+    const userName = req.authUser.username;
+    const userToUnfollow = req.params.username;
+
+    const response = await unfollow(userName, authUser, userToUnfollow);
+    res.status(200).send(response);
+  } catch (error) {
+    res.status(403).send(error.message);
+  }
+}
+
 module.exports = {
   getUsers,
   createUser,
   getProfile,
+  getUserProfile,
   editProfile,
   sendPasswordResetLink,
   confirmResetToken,
   confirmPassword,
   uploadImage,
+  followUser,
+  unfollowUser,
 };

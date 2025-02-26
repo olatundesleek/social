@@ -19,10 +19,16 @@ async function authUser(req, res) {
     }
 
     const token = await user.createToken();
-    res
-      .header("authorization", token)
-      .status(200)
-      .send("signed in successfully  " + token);
+
+    res.cookie("authorization", token, {
+      httpOnly: true, // Prevents JavaScript access (XSS protection)
+      secure: false, // Ensures cookie is sent only over HTTPS (disable in dev if needed)
+      sameSite: "Strict", // Prevents CSRF attacks
+      maxAge: 3600000, // 1 hour in milliseconds
+    });
+    if (token) {
+      res.status(200).send("user logged in");
+    }
 
     console.log("this is my " + token);
   } catch (error) {}
