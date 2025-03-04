@@ -1,4 +1,4 @@
-// const { log } = require('node:console');
+const { ObjectId } = require("mongodb");
 const jwt = require("jsonwebtoken");
 const sendEmail = require("../email/sendmail");
 const generatePasswordResetEmail = require("../emailtemplate/paswordresetemail");
@@ -29,29 +29,38 @@ async function saveUser(username, email, password) {
   }
 }
 
-async function profile(username, authUser) {
+async function profile(authUser) {
   try {
-    console.log(authUser, username);
+    let user;
+    const userInfo = await User.findOne({ username: authUser }, "-password");
 
+    if (!userInfo) {
+      return `user ${username} not found`;
+    }
+
+    user = {
+      username: userInfo.username,
+      email: userInfo.email,
+      address: userInfo.address,
+      profilePic: userInfo.profilePicture,
+      bio: userInfo.bio,
+      followerCount: userInfo.followersCount,
+      followingCount: userInfo.followingCount,
+      isVerified: userInfo.isVerified,
+      registered: userInfo.accountCreated,
+    };
+    return user;
+  } catch (error) {
+    throw new Error(error);
+  }
+}
+async function userProfile(username) {
+  try {
     let user;
     const userInfo = await User.findOne({ username: username }, "-password");
 
     if (!userInfo) {
       return `user ${username} not found`;
-    }
-    if (authUser === username) {
-      user = {
-        username: userInfo.username,
-        email: userInfo.email,
-        address: userInfo.address,
-        profilePic: userInfo.profilePicture,
-        bio: userInfo.bio,
-        followerCount: userInfo.followersCount,
-        followingCount: userInfo.followingCount,
-        isVerified: userInfo.isVerified,
-        registered: userInfo.accountCreated,
-      };
-      return user;
     }
     user = {
       username: userInfo.username,
@@ -136,13 +145,116 @@ async function uploadUserImage() {
   // }});
 }
 
+async function follow(userName, authUser, userToFollow) {
+  const userId = authUser;
+  const session = await User.startSession(); // Start a session for the transaction
+
+  try {
+    session.startTransaction(); // Begin transaction
+
+    if (userName === userToFollow) {
+      throw new Error("You cannot follow yourself");
+    }
+
+    // 🔹 Step 1: Check if the target user exists within the transaction
+    const targetUser = await User.findOne({ username: userToFollow }).session(
+      session
+    );
+
+    if (!targetUser) {
+      throw new Error("User not found");
+    }
+
+    if (targetUser.followers.includes(userId)) {
+      throw new Error("You are already following this user");
+    }
+
+    // 🔹 Step 2: Perform updates atomically within the transaction
+
+    await User.updateOne(
+      { username: userToFollow },
+      { $addToSet: { followers: new ObjectId(userId) } },
+      { session } // Perform within the session
+    );
+
+    await User.updateOne(
+      { _id: userId },
+      { $addToSet: { following: new ObjectId(targetUser._id) } },
+      { session }
+    );
+
+    // 🔹 Step 3: Commit the transaction
+    await session.commitTransaction();
+    session.endSession();
+
+    return { success: true, message: "Successfully followed the user" };
+  } catch (error) {
+    await session.abortTransaction(); // Rollback any changes
+    session.endSession();
+    return { success: false, message: error.message };
+  }
+}
+
+async function unfollow(userName, authUser, userToUnfollow) {
+  const userId = authUser;
+  const session = await User.startSession(); // Start a session for the transaction
+
+  try {
+    session.startTransaction(); // Begin transaction
+
+    if (userName === userToUnfollow) {
+      throw new Error("You cannot unfollow yourself");
+    }
+
+    // 🔹 Step 1: Check if the target user exists within the transaction
+    const targetUser = await User.findOne({ username: userToUnfollow }).session(
+      session
+    );
+
+    if (!targetUser) {
+      throw new Error("User not found");
+    }
+
+    if (!targetUser.followers.includes(userId)) {
+      throw new Error("You are not following this user");
+    }
+
+    // 🔹 Step 2: Perform updates atomically within the transaction
+
+    await User.updateOne(
+      { username: userToUnfollow },
+      { $pull: { followers: new ObjectId(userId) } }, // Remove userId from followers
+      { session } // Perform within the session
+    );
+
+    await User.updateOne(
+      { _id: userId },
+      { $pull: { following: new ObjectId(targetUser._id) } }, // Remove targetUser from following
+      { session }
+    );
+
+    // 🔹 Step 3: Commit the transaction
+    await session.commitTransaction();
+    session.endSession();
+
+    return { success: true, message: "Successfully unfollowed the user" };
+  } catch (error) {
+    await session.abortTransaction(); // Rollback any changes
+    session.endSession();
+    return { success: false, message: error.message };
+  }
+}
+
 module.exports = {
   displayUsers,
   saveUser,
   profile,
+  userProfile,
   updateProfile,
   uploadUserImage,
   passwordResetLink,
   confirmToken,
   changePassword,
+  follow,
+  unfollow,
 };

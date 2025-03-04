@@ -76,7 +76,7 @@ userSchema.methods.createToken = async function () {
 
   return new Promise((resolve, reject) => {
     jwt.sign(
-      { username: this.username, isAdmin: this.isAdmin },
+      { username: this.username, userId: this._id, isAdmin: this.isAdmin },
       Secret,
       { expiresIn: "1h" },
       (err, token) => {

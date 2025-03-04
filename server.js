@@ -1,9 +1,11 @@
 const express = require("express");
 const mongoose = require("mongoose");
+const cookieParser = require("cookie-parser");
 const userRouter = require("./routes/user.routes");
 const checkJson = require("./middleware/checkjson");
 const http = require('http')
 require("dotenv").config();
+
 const app = express();
 const cors = require('cors')
 const { Server } = require('socket.io');
@@ -71,6 +73,7 @@ maildev.listen(() => {
 app.use(cors())
 app.use(express.json());
 app.use(checkJson);
+app.use(cookieParser()); // Middleware to parse cookies
 
 mongoose.connect("mongodb://localhost/social").then(() => {
   console.log("connected");
