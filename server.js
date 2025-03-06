@@ -3,14 +3,14 @@ const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
 const userRouter = require("./routes/user.routes");
 const checkJson = require("./middleware/checkjson");
-const http = require('http')
+const http = require('http');
 require("dotenv").config();
 
 const app = express();
-const cors = require('cors')
+const cors = require('cors');
 const { Server } = require('socket.io');
 
-const server = http.createServer(app)
+const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
@@ -19,39 +19,42 @@ const io = new Server(server, {
     allowedHeaders: ["my-custom-header"], // Optional: If you're sending custom headers
     credentials: true // Optional: If you're using cookies or other credentials
   }
-})
-const onlineUsers = new Map()
+});
+
+const onlineUsers = new Map();
 
 io.on('connection', (socket) => {
   console.log(socket.id + ' connected');
+  onlineUsers.set(socket.id, 'guest');  // Add the user to the Map
 
-  
+  console.log(onlineUsers);
 
-  // Emit a message when the client connects
+  // Convert Map to an array before emitting
+  const onlineUsersArray = Array.from(onlineUsers.entries());  // Converts Map to [[socketId, 'guest'], ...]
+  io.emit('onlineUsers', onlineUsersArray);  // Emit the array
+
   io.emit('server message', socket.id + ' connected');
 
-  socket.on('register',(username)=>{
-    onlineUsers.set(username,socket.id)
-  })
-  //Listen for new chat messages
-  socket.on('chatMessage', (msg) => {
-    console.log('message received: ' + msg);
-    
-    // Emit the message to all connected clients (including the sender)
-    io.emit('server message',socket.id + ":  "+msg);
+  // this will be to auth and emit online users
+  // socket.on('register', (username) => {
+  //   onlineUsers.set(socket.id, username);
+  //   const onlineUsersArray = Array.from(onlineUsers.entries());  // Convert Map to array again after update
+  //   io.emit('onlineUsers', onlineUsersArray);  // Emit updated list
+  // });
+
+  socket.on('pchat', (data) => {
+    console.log('message received: ' + data);
+    const message = data.message
+    io.to(data.to).emit('chat',{ from:"test",message});
   });
 
-  // Handle disconnection event
   socket.on('disconnect', () => {
     console.log(socket.id + ' disconnected');
-    socket.emit('server message', socket.id + ' disconnected');
+    onlineUsers.delete(socket.id);  // Remove the user from the Map
+    const onlineUsersArray = Array.from(onlineUsers.entries());  // Convert Map to array again after update
+    io.emit('onlineUsers', onlineUsersArray);  // Emit updated list
   });
 });
-
-
-
-
-
 
 
 const MailDev = require("maildev");
@@ -66,22 +69,22 @@ maildev.listen(() => {
   console.log("MailDev is running on http://localhost:1080");
 });
 
-// MailDev event listener (optional)
-// maildev.on("new", (email) => {
-//   console.log("New email received:", email.subject);
-// });
-app.use(cors())
+app.use(cors());
 app.use(express.json());
 app.use(checkJson);
 app.use(cookieParser()); // Middleware to parse cookies
 
-mongoose.connect("mongodb://localhost/social").then(() => {
-  console.log("connected");
-});
+mongoose.connect("mongodb://localhost/social")
+  .then(() => {
+    console.log("connected to MongoDB");
+  })
+  .catch((err) => {
+    console.error("Error connecting to MongoDB:", err);
+  });
 
 app.use("/api", userRouter);
 
-let port = process.env.PORT;
-console.log(port);
+let port = process.env.PORT || 3000;
+console.log("Server is running on port", port);
 
 server.listen(port);
