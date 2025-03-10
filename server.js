@@ -2,6 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
 const userRouter = require("./routes/user.routes");
+const postRouter = require("./routes/post.routes");
 const checkJson = require("./middleware/checkjson");
 const http = require('http');
 require("dotenv").config();
@@ -59,6 +60,8 @@ io.on('connection', (socket) => {
 
 const MailDev = require("maildev");
 
+
+
 // Start MailDev programmatically
 const maildev = new MailDev({
   smtp: 1025, // SMTP server
@@ -83,6 +86,8 @@ mongoose.connect("mongodb://localhost/social")
   });
 
 app.use("/api", userRouter);
+app.use("/api", postRouter);
+// app.use()
 
 let port = process.env.PORT || 3000;
 console.log("Server is running on port", port);
