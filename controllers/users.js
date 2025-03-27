@@ -21,8 +21,8 @@ async function getUsers(req, res) {
 
 async function createUser(req, res) {
   try {
-    const { username, email, password } = req.body;
-    await saveUser(username, email, password);
+    const {firstname,lastname,username, email, password } = req.body;
+    await saveUser(firstname,lastname,username, email, password);
 
     res.status(201).send("new user created");
   } catch (error) {

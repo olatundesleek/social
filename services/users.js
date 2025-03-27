@@ -12,10 +12,12 @@ async function displayUsers() {
   return allUsers;
 }
 
-async function saveUser(username, email, password) {
+async function saveUser(firstname, lastname, username, email, password) {
   try {
     const hash = await bcrypt.hash(password, saltRounds);
     const newUser = new User({
+      firstname:firstname,
+      lastname:lastname,
       username: username,
       email: email,
       password: hash,
