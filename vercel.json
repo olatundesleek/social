@@ -1,0 +1,18 @@
+{
+    "version": 2,
+    "builds": [
+      {
+        "src": "server.js",
+        "use": "@vercel/node"
+      }
+    ],
+    "env": {
+      "MONGODB_URL": "@mongodb-url",
+      "PASSWORD_RESET_SECRET":"@passwordresetsecret",
+      "PORT":"@port",
+      "EMAIL":"@email",
+      "WEBLINK":"@weblink"
+
+    }
+  }
+  

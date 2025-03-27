@@ -5,79 +5,79 @@ const userRouter = require("./routes/user.routes");
 const postRouter = require("./routes/post.routes");
 const checkJson = require("./middleware/checkjson");
 const http = require('http');
-require("dotenv").config();
+
+// Load environment variables based on the current NODE_ENV (default: development)
+const envFile = `.env.${process.env.NODE_ENV || 'development'}`;
+require("dotenv").config({ path: envFile });
 
 const app = express();
 const cors = require('cors');
 const { Server } = require('socket.io');
 
-const server = http.createServer(app);
+const server = http.createServer(app); // Create an HTTP server using Express
 
+// Set up Socket.io for real-time communication
 const io = new Server(server, {
   cors: {
-    origin: "*", // Allow your frontend to connect
+    origin: "*", // Allow frontend connections from any origin
     methods: ["GET", "POST"],
-    allowedHeaders: ["my-custom-header"], // Optional: If you're sending custom headers
-    credentials: true // Optional: If you're using cookies or other credentials
+    allowedHeaders: ["my-custom-header"], // Define allowed headers (optional)
+    credentials: true // Enable credentials support for cookies or authentication
   }
 });
 
-const onlineUsers = new Map();
+const onlineUsers = new Map(); // Store connected users
 
+// Handle a new socket connection
 io.on('connection', (socket) => {
   console.log(socket.id + ' connected');
-  onlineUsers.set(socket.id, 'guest');  // Add the user to the Map
+  onlineUsers.set(socket.id, 'guest');  // Add the user as a guest
 
   console.log(onlineUsers);
 
-  // Convert Map to an array before emitting
-  const onlineUsersArray = Array.from(onlineUsers.entries());  // Converts Map to [[socketId, 'guest'], ...]
-  io.emit('onlineUsers', onlineUsersArray);  // Emit the array
+  // Convert the Map to an array and broadcast the list of online users
+  const onlineUsersArray = Array.from(onlineUsers.entries());
+  io.emit('onlineUsers', onlineUsersArray);
 
   io.emit('server message', socket.id + ' connected');
 
-  // this will be to auth and emit online users
-  // socket.on('register', (username) => {
-  //   onlineUsers.set(socket.id, username);
-  //   const onlineUsersArray = Array.from(onlineUsers.entries());  // Convert Map to array again after update
-  //   io.emit('onlineUsers', onlineUsersArray);  // Emit updated list
-  // });
-
+  // Event listener for private chat messages
   socket.on('pchat', (data) => {
     console.log('message received: ' + data);
-    const message = data.message
-    io.to(data.to).emit('chat',{ from:"test",message});
+    const message = data.message;
+    io.to(data.to).emit('chat', { from: "test", message }); // Send message to specific user
   });
 
+  // Handle user disconnect
   socket.on('disconnect', () => {
     console.log(socket.id + ' disconnected');
     onlineUsers.delete(socket.id);  // Remove the user from the Map
-    const onlineUsersArray = Array.from(onlineUsers.entries());  // Convert Map to array again after update
-    io.emit('onlineUsers', onlineUsersArray);  // Emit updated list
+    const onlineUsersArray = Array.from(onlineUsers.entries());
+    io.emit('onlineUsers', onlineUsersArray); // Update online users list
   });
 });
 
-
+// MailDev setup for testing emails
 const MailDev = require("maildev");
 
-
-
-// Start MailDev programmatically
+// Initialize MailDev with SMTP and Web UI ports
 const maildev = new MailDev({
-  smtp: 1025, // SMTP server
-  web: 1080, // Web UI
+  smtp: 1025, // Local SMTP server
+  web: 1080,  // Web UI to view emails
 });
 
 maildev.listen(() => {
   console.log("MailDev is running on http://localhost:1080");
 });
 
-app.use(cors());
-app.use(express.json());
-app.use(checkJson);
+// Middleware setup
+app.use(cors()); // Enable CORS for cross-origin requests
+app.use(express.json()); // Parse incoming JSON requests
+app.use(checkJson); // Custom middleware for JSON validation
 app.use(cookieParser()); // Middleware to parse cookies
 
-mongoose.connect("mongodb://localhost/social")
+// Connect to MongoDB
+mongoose.connect(process.env.MONGODB_URL)
   .then(() => {
     console.log("connected to MongoDB");
   })
@@ -85,11 +85,11 @@ mongoose.connect("mongodb://localhost/social")
     console.error("Error connecting to MongoDB:", err);
   });
 
+// Set up API routes
 app.use("/api", userRouter);
 app.use("/api", postRouter);
-// app.use()
 
-let port = process.env.PORT || 3000;
+let port = process.env.PORT || 3000; // Use the port from environment variables or default to 3000
 console.log("Server is running on port", port);
 
-server.listen(port);
+server.listen(port); // Start the HTTP server

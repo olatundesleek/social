@@ -1,4 +1,4 @@
-const generateUserRegisterationEmail = (username) => {
+const generateUserRegisterationEmail = (username,token) => {
   const link = process.env.WEBLINK;
   return `
 
@@ -45,7 +45,7 @@ const generateUserRegisterationEmail = (username) => {
         <h2>Welcome to social</h2>
         <p>Hello <strong>${username}</strong>,</p>
         <p>click to activate your account</p>
-        <a href="http://${link}" class="button">Activate Account</a>
+        <a href="http://${link}/${token}" class="button">Activate Account</a>
        
         <p>Thanks, <br> The Team</p>
     </div>
