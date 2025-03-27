@@ -110,7 +110,7 @@ async function uploadImage(req, res) {
     }
     await User.findOneAndUpdate(
       { username: username },
-      // { profilePicture:  }
+      
       { $push: { pictures: newPhoto } },
       { new: true }
     );
