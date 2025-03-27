@@ -7,12 +7,12 @@
       }
     ],
     "env": {
-      "MONGODB_URL": "@mongodb-url",
+      "MONGODB_URL": "@mongodb_url",
       "PASSWORD_RESET_SECRET":"@passwordresetsecret",
       "PORT":"@port",
       "EMAIL":"@email",
-      "WEBLINK":"@weblink"
-
+      "WEBLINK":"@weblink",
+        "SECRET":"@secret"
     }
   }
   
