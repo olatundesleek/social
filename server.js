@@ -4,15 +4,20 @@ const cookieParser = require("cookie-parser");
 const userRouter = require("./routes/user.routes");
 const postRouter = require("./routes/post.routes");
 const checkJson = require("./middleware/checkjson");
-const http = require('http');
+const http = require("http");
 
 // Load environment variables based on the current NODE_ENV (default: development)
-const envFile = `.env.${process.env.NODE_ENV || 'development'}`;
-require("dotenv").config({ path: envFile });
+// const envFile = `.env.${process.env.NODE_ENV || 'development'}`;
+// require("dotenv").config({ path: envFile });
+
+if (process.env.NODE_ENV !== "production") {
+  const envFile = `.env.${process.env.NODE_ENV || "development"}`;
+  require("dotenv").config({ path: envFile });
+}
 
 const app = express();
-const cors = require('cors');
-const { Server } = require('socket.io');
+const cors = require("cors");
+const { Server } = require("socket.io");
 
 const server = http.createServer(app); // Create an HTTP server using Express
 
@@ -22,38 +27,38 @@ const io = new Server(server, {
     origin: "*", // Allow frontend connections from any origin
     methods: ["GET", "POST"],
     allowedHeaders: ["my-custom-header"], // Define allowed headers (optional)
-    credentials: true // Enable credentials support for cookies or authentication
-  }
+    credentials: true, // Enable credentials support for cookies or authentication
+  },
 });
 
 const onlineUsers = new Map(); // Store connected users
 
 // Handle a new socket connection
-io.on('connection', (socket) => {
-  console.log(socket.id + ' connected');
-  onlineUsers.set(socket.id, 'guest');  // Add the user as a guest
+io.on("connection", (socket) => {
+  console.log(socket.id + " connected");
+  onlineUsers.set(socket.id, "guest"); // Add the user as a guest
 
   console.log(onlineUsers);
 
   // Convert the Map to an array and broadcast the list of online users
   const onlineUsersArray = Array.from(onlineUsers.entries());
-  io.emit('onlineUsers', onlineUsersArray);
+  io.emit("onlineUsers", onlineUsersArray);
 
-  io.emit('server message', socket.id + ' connected');
+  io.emit("server message", socket.id + " connected");
 
   // Event listener for private chat messages
-  socket.on('pchat', (data) => {
-    console.log('message received: ' + data);
+  socket.on("pchat", (data) => {
+    console.log("message received: " + data);
     const message = data.message;
-    io.to(data.to).emit('chat', { from: "test", message }); // Send message to specific user
+    io.to(data.to).emit("chat", { from: "test", message }); // Send message to specific user
   });
 
   // Handle user disconnect
-  socket.on('disconnect', () => {
-    console.log(socket.id + ' disconnected');
-    onlineUsers.delete(socket.id);  // Remove the user from the Map
+  socket.on("disconnect", () => {
+    console.log(socket.id + " disconnected");
+    onlineUsers.delete(socket.id); // Remove the user from the Map
     const onlineUsersArray = Array.from(onlineUsers.entries());
-    io.emit('onlineUsers', onlineUsersArray); // Update online users list
+    io.emit("onlineUsers", onlineUsersArray); // Update online users list
   });
 });
 
@@ -63,7 +68,7 @@ const MailDev = require("maildev");
 // Initialize MailDev with SMTP and Web UI ports
 const maildev = new MailDev({
   smtp: 1025, // Local SMTP server
-  web: 1080,  // Web UI to view emails
+  web: 1080, // Web UI to view emails
 });
 
 maildev.listen(() => {
@@ -77,7 +82,8 @@ app.use(checkJson); // Custom middleware for JSON validation
 app.use(cookieParser()); // Middleware to parse cookies
 
 // Connect to MongoDB
-mongoose.connect(process.env.MONGODB_URL)
+mongoose
+  .connect(process.env.MONGODB_URL)
   .then(() => {
     console.log("connected to MongoDB");
   })
