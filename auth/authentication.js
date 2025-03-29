@@ -3,9 +3,6 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
-// Secret key to sign the JWT
-let Secret = process.env.SECRET;
-
 async function authUser(req, res) {
   try {
     const { username, password } = req.body;
