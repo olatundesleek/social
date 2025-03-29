@@ -2,69 +2,71 @@ const nodemailer = require("nodemailer");
 const generatePasswordResetEmail = require("../emailtemplate/paswordresetemail");
 const generateUserRegisterationEmail = require("../emailtemplate/userregisterationemail");
 const generatePasswordchangedEmail = require("../emailtemplate/passwordchanged");
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
-const transporter = nodemailer.createTransport({
-  host: "localhost",
-  port: 1025,
-  secure: false, // true for port 465, false for other ports
-  //   auth: {
-  //     user: "maddison53@ethereal.email",
-  //     pass: "jn7jnAPss4f63QBp6D",
-  //   },
-});
+
+const isProduction = process.env.NODE_ENV === "production";
+
+// Disable TLS rejection only in development mode
+if (!isProduction) {
+  process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+}
+
+// Create email transporter dynamically
+const transporter = isProduction
+  ? nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.GMAIL_USER, // Set in Vercel environment
+        pass: process.env.GMAIL_PASS, // Use an app password if needed
+      },
+    })
+  : nodemailer.createTransport({
+      host: "localhost",
+      port: 1025,
+      secure: false,
+    });
 
 async function sendPasswordResetEmail(token, user, email) {
   try {
     const subject = "Password-Reset";
-    // const html = generatePasswordResetEmail(user, token);
     const html = generatePasswordResetEmail(user, token);
-    // send mail with defined transport object
-    const info = await transporter.sendMail({
-      from: process.env.EMAIL, // sender address
-      to: email, // list of receivers
-      subject: subject, // Subject line
-      //   text: text, // plain text body
-      html: html, // html body
+    await transporter.sendMail({
+      from: process.env.EMAIL, // Sender email (set in env)
+      to: email,
+      subject,
+      html,
     });
   } catch (error) {
-    console.log(error);
+    console.error("Error sending password reset email:", error);
   }
 }
 
 async function sendPasswordChangedEmail(user, email) {
   try {
     const subject = "Password-Change";
-    // const html = generatePasswordResetEmail(user, token);
     const html = generatePasswordchangedEmail(user);
-    // send mail with defined transport object
-    const info = await transporter.sendMail({
-      from: process.env.EMAIL, // sender address
-      to: email, // list of receivers
-      subject: subject, // Subject line
-      //   text: text, // plain text body
-      html: html, // html body
+    await transporter.sendMail({
+      from: process.env.EMAIL,
+      to: email,
+      subject,
+      html,
     });
   } catch (error) {
-    console.log(error);
+    console.error("Error sending password changed email:", error);
   }
 }
 
 async function sendUserRegisterationEmail(username, email) {
   try {
     const subject = "Welcome to My Social";
-    // const html = generatePasswordResetEmail(user, token);
-    // const html = generatePasswordResetEmail(user, token);
     const html = generateUserRegisterationEmail(username);
-    // send mail with defined transport object
-    const info = await transporter.sendMail({
-      from: process.env.EMAIL, // sender address
-      to: email, // list of receivers
-      subject: subject, // Subject line
-      //   text: text, // plain text body
-      html: html, // html body
+    await transporter.sendMail({
+      from: process.env.EMAIL,
+      to: email,
+      subject,
+      html,
     });
   } catch (error) {
-    console.log(error);
+    console.error("Error sending user registration email:", error);
   }
 }
 
