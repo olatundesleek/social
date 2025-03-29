@@ -63,17 +63,18 @@ io.on("connection", (socket) => {
 });
 
 // MailDev setup for testing emails
-const MailDev = require("maildev");
+if (process.env.NODE_ENV !== "production") {
+  const MailDev = require("maildev");
 
-// Initialize MailDev with SMTP and Web UI ports
-const maildev = new MailDev({
-  smtp: 1025, // Local SMTP server
-  web: 1080, // Web UI to view emails
-});
+  const maildev = new MailDev({
+    smtp: 1025, // Local SMTP server
+    web: 1080, // Web UI for viewing emails
+  });
 
-maildev.listen(() => {
-  console.log("MailDev is running on http://localhost:1080");
-});
+  maildev.listen(() => {
+    console.log("MailDev is running on http://localhost:1080");
+  });
+}
 
 // Middleware setup
 app.use(cors()); // Enable CORS for cross-origin requests
@@ -95,7 +96,8 @@ mongoose
 app.use("/api", userRouter);
 app.use("/api", postRouter);
 
-let port = process.env.PORT || 3000; // Use the port from environment variables or default to 3000
-console.log("Server is running on port", port);
+const port = process.env.PORT || 3000;
 
-server.listen(port); // Start the HTTP server
+server.listen(port, () => {
+  console.log(`✅ Server is running on port ${port}`);
+});
