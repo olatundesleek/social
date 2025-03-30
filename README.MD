@@ -62,6 +62,9 @@ Create a `.env` file at the root of your project and add the following variables
 MONGODB_URI=mongodb://localhost:27017/social  # Change if using MongoDB Atlas
 SECRET=your-jwt-secret-key
 PORT=3000
+PASSWORD_RESET_SECRET = "your reset secret"
+EMAIL = "your email"
+WEBLINK = 'social.com/'
 ```
 
 - `MONGODB_URI`: Connection string to your MongoDB instance.
@@ -125,13 +128,13 @@ npm run dev
 - **Response**:
   ```json
   {
-    "token": "jwt_token_here"
+    "mesage": "user logged in"
   }
   ```
 
 ### **User Profile**
 
-#### 3. **GET /profile/me**
+#### 3. **GET /api/user**
 
 - **Description**: Get the profile of the logged-in user.
 - **Headers**: `Authorization: Bearer <JWT_TOKEN>`
@@ -211,9 +214,27 @@ npm run dev
 - **Description**: Delete a post.
 - **Headers**: `Authorization: Bearer <JWT_TOKEN>`
 - **Response**:
+
   ```json
   {
     "message": "Post deleted successfully"
+  }
+  ```
+
+#### 8. **GET /api/latestnews/:page**
+
+- **Description**: Get latest news/ it defaults to 1 per page
+- **Response**:
+
+  ```json
+  {
+    "date": "post date",
+    "link": "post link",
+    "title": "title",
+    "tags": [],
+    "postImage": "image",
+    "excerpt": "",
+    "author": "admin"
   }
   ```
 
