@@ -1,5 +1,6 @@
 const sendEmail = require("../email/sendmail");
 const User = require("../models/user.model");
+
 const {
   displayUsers,
   saveUser,
@@ -11,6 +12,7 @@ const {
   userProfile,
   follow,
   unfollow,
+  latestNews,
 } = require("../services/users");
 
 async function getUsers(req, res) {
@@ -21,8 +23,8 @@ async function getUsers(req, res) {
 
 async function createUser(req, res) {
   try {
-    const {firstname,lastname,username, email, password } = req.body;
-    await saveUser(firstname,lastname,username, email, password);
+    const { firstname, lastname, username, email, password } = req.body;
+    await saveUser(firstname, lastname, username, email, password);
 
     res.status(201).send("new user created");
   } catch (error) {
@@ -39,6 +41,17 @@ async function getProfile(req, res) {
     res.status(200).send(userInfo);
   } catch (error) {
     res.send(error.message);
+  }
+}
+
+async function getLatestNews(req, res) {
+  try {
+    const page = req.params.page || 1; // Default to page 1 if no page is provided
+    const response = await latestNews(page);
+    res.status(200).send(response);
+  } catch (error) {
+    console.error("Error fetching latest news:", error);
+    res.status(500).send(error + "Error fetching latest news");
   }
 }
 
@@ -110,7 +123,7 @@ async function uploadImage(req, res) {
     }
     await User.findOneAndUpdate(
       { username: username },
-      
+
       { $push: { pictures: newPhoto } },
       { new: true }
     );
@@ -150,6 +163,7 @@ module.exports = {
   createUser,
   getProfile,
   getUserProfile,
+  getLatestNews,
   editProfile,
   sendPasswordResetLink,
   confirmResetToken,

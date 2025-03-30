@@ -4,7 +4,7 @@ const sendEmail = require("../email/sendmail");
 const generatePasswordResetEmail = require("../emailtemplate/paswordresetemail");
 const User = require("../models/user.model");
 const bcrypt = require("bcrypt");
-
+const axios = require("axios");
 const saltRounds = 10;
 
 async function displayUsers() {
@@ -16,8 +16,8 @@ async function saveUser(firstname, lastname, username, email, password) {
   try {
     const hash = await bcrypt.hash(password, saltRounds);
     const newUser = new User({
-      firstname:firstname,
-      lastname:lastname,
+      firstname: firstname,
+      lastname: lastname,
       username: username,
       email: email,
       password: hash,
@@ -76,6 +76,29 @@ async function userProfile(username) {
     return user;
   } catch (error) {
     throw new Error(error);
+  }
+}
+
+async function latestNews(page) {
+  try {
+    const response = await axios.get(
+      `https://blog.florintechcomputercollege.com/wp-json/wp/v2/posts?per_page=${page}`
+    );
+
+    const posts = response.data.map((post) => ({
+      date: post.date,
+      link: post.link,
+      title: post.title.rendered,
+      tags: post.tags,
+      postImage: post.yoast_head_json?.og_image?.[0]?.url || null, // Handle missing images
+      excerpt: post.excerpt.rendered,
+      author: post.yoast_head_json?.author || "Unknown", // Handle missing authors
+    }));
+
+    return posts; // Returns an array of filtered post data
+  } catch (error) {
+    console.error("Error fetching news:", error.message);
+    throw new Error("Failed to fetch latest news"); // Throw error instead of sending a response here
   }
 }
 
@@ -252,6 +275,7 @@ module.exports = {
   saveUser,
   profile,
   userProfile,
+  latestNews,
   updateProfile,
   uploadUserImage,
   passwordResetLink,

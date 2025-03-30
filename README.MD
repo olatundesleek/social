@@ -92,12 +92,14 @@ npm run dev
 
 ### **User Authentication**
 
-#### 1. **POST /api/auth/register**
+#### 1. **POST /signup**
 
 - **Description**: Registers a new user.
 - **Request Body**:
   ```json
   {
+    "firstname": "John",
+    "lastname": "Doe",
     "username": "johndoe",
     "email": "john@example.com",
     "password": "password123"
@@ -214,8 +216,6 @@ npm run dev
     "message": "Post deleted successfully"
   }
   ```
-
----
 
 ## Folder Structure
 

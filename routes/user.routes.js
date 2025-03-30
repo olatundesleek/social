@@ -4,7 +4,7 @@ const auth = require("../auth/authentication"); // Middleware for user authentic
 const { authUser } = require("../auth/authorization"); // Middleware for user authorization
 const upload = require("../middleware/upload"); // Middleware for handling file uploads
 const checkResetToken = require("../middleware/checkusertoken"); // Middleware to verify password reset token
-
+const axios = require("axios");
 const userRouter = express.Router();
 
 // 🔹 Get a user's public profile by their username (requires authentication)
@@ -12,6 +12,8 @@ userRouter.get("/user/:username", authUser, userController.getUserProfile);
 
 // 🔹 Get the authenticated user's own profile
 userRouter.get("/user/", authUser, userController.getProfile);
+
+userRouter.get("/latestnews/:page?", authUser, userController.getLatestNews);
 
 // 🔹 Update the authenticated user's profile (e.g., name, bio, etc.)
 userRouter.patch("/user", authUser, userController.editProfile);
