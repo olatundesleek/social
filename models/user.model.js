@@ -34,9 +34,14 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: "",
   },
-  pictures: {
-    type: [String],
-  },
+  pictures:  [
+    {
+      url: { type: String, required: false }, // URL of the media (image, video, etc.)
+      type: { type: String, enum: ['image', 'video', 'audio'], required: false }, // Media type
+      name: { type: String, required: false }, // Optional description of the media
+    },
+  ],
+
   bio: {
     type: String,
     default: "",

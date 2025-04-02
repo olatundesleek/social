@@ -1,14 +1,34 @@
 const multer = require("multer");
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "uploads/");
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, uniqueSuffix + file.originalname);
-    req.filename = this.filename;
-  },
-});
-const upload = multer({ storage: storage });
+const path = require('path');
 
-module.exports = upload;
+// Define storage configuration for Multer
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'uploads/'); // File will be saved in 'uploads' folder
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + path.extname(file.originalname)); // Unique filename
+  }
+});
+
+// Multer file filter for validation (e.g., only image/video)
+const fileFilter = (req, file, cb) => {
+  const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'video/mp4', 'video/mkv'];
+  if (allowedTypes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error('Invalid file type'), false); // Error message
+  }
+};
+
+// Create the Multer upload instance
+const upload = multer({
+  storage,
+  fileFilter, // Attach file filter for validation
+  limits: { fileSize: 10 * 1024 * 1024 }, // Optional: Limit to 10MB per file
+});
+
+// Export upload middleware and service function
+module.exports = {
+  uploadMedia: upload.array('media', 4), // Allow up to 4 media files
+};

@@ -19,12 +19,12 @@ userRouter.get("/latestnews/:page?", authUser, userController.getLatestNews);
 userRouter.patch("/user", authUser, userController.editProfile);
 
 // 🔹 Upload a profile picture (requires authentication & file upload middleware)
-userRouter.post(
-  "/user/post",
-  authUser,
-  upload.single("file"),
-  userController.uploadImage
-);
+// userRouter.post(
+//   "/user/post",
+//   authUser,
+//   upload.single("file"),
+//   userController.uploadImage
+// );
 
 // 🔹 Register a new user
 userRouter.post("/signup", userController.createUser);

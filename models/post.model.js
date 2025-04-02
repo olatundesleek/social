@@ -18,7 +18,7 @@ const postSchema = new Schema(
       {
         url: { type: String, required: false }, // URL of the media (image, video, etc.)
         type: { type: String, enum: ['image', 'video', 'audio'], required: false }, // Media type
-        description: { type: String, required: false }, // Optional description of the media
+        name: { type: String, required: false }, // Optional description of the media
       },
     ],
     hashtags: [
@@ -56,11 +56,6 @@ const postSchema = new Schema(
       enum: ['public', 'private', 'friends', 'followers'], // Who can see the post
       default: 'public',
     },
-    tags: [
-      {
-        type: String, // You can tag users or other entities
-      },
-    ],
     createdAt: {
       type: Date,
       default: Date.now, // The post creation timestamp
